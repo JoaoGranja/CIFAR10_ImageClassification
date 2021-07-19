@@ -1,95 +1,102 @@
 
-from keras import Model, Input
-from keras.layers import Dense
+from keras import Model, Input, Sequential
+from keras.layers import Dense, GlobalAveragePooling2D, Flatten
 from tensorflow.keras.utils import get_file
-
-from models.xception_padding import Xception
-from models.resnets import ResNet101, ResNet152, ResNet50, ResNet18
-#from resnetv2 import InceptionResNetV2Same
-
-resnet_filename = 'ResNet-{}-model.keras.h5'
-resnet_resource = 'https://github.com/fizyr/keras-models/releases/download/v0.0.1/{}'.format(resnet_filename)
+from tensorflow.keras.applications import VGG19, ResNet50, ResNet101, EfficientNetB0, InceptionV3
 
 
-def download_resnet_imagenet(v):
-    v = int(v.replace('resnet', ''))
-
-    filename = resnet_filename.format(v)
-    resource = resnet_resource.format(v)
-    if v == 50:
-        checksum = '3e9f4e4f77bbe2c9bec13b53ee1c2319'
-    elif v == 101:
-        checksum = '05dc86924389e5b401a9ea0348a3213c'
-    elif v == 152:
-        checksum = '6ee11ef2b135592f8031058820bb9e71'
-
-    return get_file(
-        filename,
-        resource,
-        cache_subdir='models',
-        md5_hash=checksum
-    )
-
-def resnet152(input_shape, num_classes, activation="softmax"):
-    img_input = Input(input_shape)
-    resnet_base = ResNet152(img_input, include_top=True)
-    resnet_base.load_weights(download_resnet_imagenet("resnet152"))
-    x = resnet_base.output
-    d1 = Dense(100, activation='relu')(x)
-    outputs = Dense(num_classes, activation=activation)(d1)
-    model = Model(img_input, x)
+def vgg19(input_shape, num_classes, activation="softmax"):
+    img_input = Input(shape=input_shape)
+    base_model = VGG19(
+                    include_top=False,
+                    weights="imagenet",  # Load weights pre-trained on ImageNet.
+                    input_shape=input_shape, 
+    )  # Do not include the ImageNet classifier at the top.
+    # Freeze the base_model
+    base_model.trainable = False
+    
+    #Build the model
+    model=Sequential()
+    model.add(img_input)   #Adds the input layer
+    model.add(base_model)  #Adds the base model (in this case vgg19)
+    model.add(Flatten())   #Flatten base model output
+    model.add(Dense(num_classes, activation=activation)) #Adds a fully connected layer with output = num_classes
     return model
 
-
-def resnet101(input_shape, num_classes, activation="softmax"):
-    img_input = Input(input_shape)
-    resnet_base = ResNet101(img_input, include_top=True)
-    resnet_base.load_weights(download_resnet_imagenet("resnet101"))
-    x = resnet_base.output
-    d1 = Dense(100, activation='relu')(x)
-    outputs = Dense(num_classes, activation=activation)(d1)
-    model = Model(img_input, x)
-    return model
 
 def resnet50(input_shape, num_classes, activation="softmax"):
-    img_input = Input(input_shape)
-    resnet_base = ResNet50(img_input, include_top=True)
-    resnet_base.load_weights(download_resnet_imagenet("resnet50"))
-    x = resnet_base.output
-    d1 = Dense(100, activation='relu')(x)
-    outputs = Dense(num_classes, activation=activation)(d1)
-    model = Model(img_input, outputs)
+    img_input = Input(shape=input_shape)
+    base_model = ResNet50(
+                    include_top=False,
+                    weights="imagenet",  # Load weights pre-trained on ImageNet.
+                    input_shape=input_shape,  
+                    classes=10,
+    )  # Do not include the ImageNet classifier at the top.
+
+    # Freeze the base_model
+    base_model.trainable = False
+    model=Sequential()
+    model.add(img_input)   #Adds the input layer
+    model.add(base_model)  #Adds the base model (in this case resnet50)
+    model.add(Flatten())   #Flatten base model output
+    model.add(Dense(num_classes, activation=activation)) #Adds a fully connected layer with output = num_classes
     return model
 
-def resnet18(input_shape, num_classes, activation="softmax"):
-    img_input = Input(input_shape)
-    resnet_base = ResNet18(img_input, include_top=True)
-    resnet_base.load_weights(download_resnet_imagenet("resnet18"))
-    x = resnet_base.output
-    d1 = Dense(100, activation='relu')(x)
-    outputs = Dense(num_classes, activation=activation)(d1)
-    model = Model(img_input, outputs)
-    return model
+def resnet101(input_shape, num_classes, activation="softmax"):
+    img_input = Input(shape=input_shape)
+    base_model = ResNet101(
+                    include_top=False,
+                    weights="imagenet",  # Load weights pre-trained on ImageNet.
+                    input_shape=input_shape,  
+                    classes=10,
+    )  # Do not include the ImageNet classifier at the top.
 
+    # Freeze the base_model
+    base_model.trainable = False
+    model=Sequential()
+    model.add(img_input)   #Adds the input layer
+    model.add(base_model)  #Adds the base model (in this case resnet101)
+    model.add(Flatten())   #Flatten base model output
+    model.add(Dense(num_classes, activation=activation)) #Adds a fully connected layer with output = num_classes
+    return model
 
 def xception(input_shape, num_classes, activation="sigmoid"):
-    xception = Xception(input_shape=input_shape, include_top=False)
-    x = xception.output
-    d1 = Dense(100, activation='relu')(x)
-    outputs = Dense(num_classes, activation=activation)(d1)
-    model = Model(xception.input, x)
+    img_input = Input(shape=input_shape)
+    base_model = InceptionV3(
+                    include_top=False,
+                    weights="imagenet",  # Load weights pre-trained on ImageNet.
+                    input_shape=input_shape,  
+                    classes=10,
+    )  # Do not include the ImageNet classifier at the top.
+
+    # Freeze the base_model
+    base_model.trainable = False
+    model=Sequential()
+    model.add(img_input)   #Adds the input layer
+    model.add(base_model)  #Adds the base model (in this case xception)
+    model.add(Flatten())   #Flatten base model output
+    model.add(Dense(num_classes, activation=activation)) #Adds a fully connected layer with output = num_classes
     return model
 
+def efficientNet(input_shape, num_classes, activation="sigmoid"):
+    img_input = Input(shape=input_shape)
+    base_model = EfficientNetB0(
+                    include_top=False,
+                    weights="imagenet",  # Load weights pre-trained on ImageNet.
+                    input_shape=input_shape,  
+                    classes=10,
+    )  # Do not include the ImageNet classifier at the top.
 
-def densenet(input_shape, num_classes, activation="sigmoid"):
-    densenet = DenseNet169(input_shape=input_shape, include_top=False)
-    x = densenet.output
-    d1 = Dense(100, activation='relu')(x)
-    outputs = Dense(num_classes, activation=activation)(d1)
-    model = Model(densenet.input, x)
+    # Freeze the base_model
+    base_model.trainable = False
+    model=Sequential()
+    model.add(img_input)   #Adds the input layer
+    model.add(base_model)  #Adds the base model (in this case EfficientNetB0)
+    model.add(Flatten())   #Flatten base model output
+    model.add(Dense(num_classes, activation=activation)) #Adds a fully connected layer with output = num_classes
     return model
 
-def LeNet(input_shape, num_classes, activation="sigmoid"):   
+def leNet(input_shape, num_classes, activation="sigmoid"):   
     
     inputs = Input(input_shape)
     c1 = Conv2D(16, (5, 5), activation='relu', padding='same') (inputs)
@@ -126,7 +133,7 @@ def LeNet(input_shape, num_classes, activation="sigmoid"):
 
 
 if __name__ == '__main__':
-    LeNet((32, 32, 3), 10).summary()
+    leNet((32, 32, 3), 10).summary()
 
     
     
