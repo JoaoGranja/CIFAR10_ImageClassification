@@ -1,9 +1,27 @@
 
 from keras import Model, Input, Sequential
-from keras.layers import Dense, GlobalAveragePooling2D, Flatten
+from keras.layers import Dense, MaxPooling2D, Flatten, Conv2D
 from tensorflow.keras.utils import get_file
-from tensorflow.keras.applications import VGG19, ResNet50, ResNet101, EfficientNetB0, InceptionV3
+from tensorflow.keras.applications import VGG16, VGG19, ResNet50, ResNet101, EfficientNetB0, InceptionV3
 
+
+def vgg16(input_shape, num_classes, activation="softmax"):
+    img_input = Input(shape=input_shape)
+    base_model = VGG16(
+                    include_top=False,
+                    weights="imagenet",  # Load weights pre-trained on ImageNet.
+                    input_shape=input_shape, 
+    )  # Do not include the ImageNet classifier at the top.
+    # Freeze the base_model
+    base_model.trainable = True
+    
+    #Build the model
+    model=Sequential(name="VGG16")
+    model.add(img_input)   #Adds the input layer
+    model.add(base_model)  #Adds the base model (in this case vgg19)
+    model.add(Flatten())   #Flatten base model output
+    model.add(Dense(num_classes, activation=activation)) #Adds a fully connected layer with output = num_classes
+    return model
 
 def vgg19(input_shape, num_classes, activation="softmax"):
     img_input = Input(shape=input_shape)
@@ -13,16 +31,15 @@ def vgg19(input_shape, num_classes, activation="softmax"):
                     input_shape=input_shape, 
     )  # Do not include the ImageNet classifier at the top.
     # Freeze the base_model
-    base_model.trainable = False
+    base_model.trainable = True
     
     #Build the model
-    model=Sequential()
+    model=Sequential(name="VGG19")
     model.add(img_input)   #Adds the input layer
     model.add(base_model)  #Adds the base model (in this case vgg19)
     model.add(Flatten())   #Flatten base model output
     model.add(Dense(num_classes, activation=activation)) #Adds a fully connected layer with output = num_classes
     return model
-
 
 def resnet50(input_shape, num_classes, activation="softmax"):
     img_input = Input(shape=input_shape)
@@ -35,7 +52,7 @@ def resnet50(input_shape, num_classes, activation="softmax"):
 
     # Freeze the base_model
     base_model.trainable = False
-    model=Sequential()
+    model=Sequential(name="resnet50")
     model.add(img_input)   #Adds the input layer
     model.add(base_model)  #Adds the base model (in this case resnet50)
     model.add(Flatten())   #Flatten base model output
@@ -53,14 +70,14 @@ def resnet101(input_shape, num_classes, activation="softmax"):
 
     # Freeze the base_model
     base_model.trainable = False
-    model=Sequential()
+    model=Sequential(name="resnet101")
     model.add(img_input)   #Adds the input layer
     model.add(base_model)  #Adds the base model (in this case resnet101)
     model.add(Flatten())   #Flatten base model output
     model.add(Dense(num_classes, activation=activation)) #Adds a fully connected layer with output = num_classes
     return model
 
-def xception(input_shape, num_classes, activation="sigmoid"):
+def inception(input_shape, num_classes, activation="sigmoid"):
     img_input = Input(shape=input_shape)
     base_model = InceptionV3(
                     include_top=False,
@@ -71,7 +88,7 @@ def xception(input_shape, num_classes, activation="sigmoid"):
 
     # Freeze the base_model
     base_model.trainable = False
-    model=Sequential()
+    model=Sequential(name="inception")
     model.add(img_input)   #Adds the input layer
     model.add(base_model)  #Adds the base model (in this case xception)
     model.add(Flatten())   #Flatten base model output
@@ -89,7 +106,7 @@ def efficientNet(input_shape, num_classes, activation="sigmoid"):
 
     # Freeze the base_model
     base_model.trainable = False
-    model=Sequential()
+    model=Sequential(name="efficientNet")
     model.add(img_input)   #Adds the input layer
     model.add(base_model)  #Adds the base model (in this case EfficientNetB0)
     model.add(Flatten())   #Flatten base model output
@@ -128,7 +145,7 @@ def leNet(input_shape, num_classes, activation="sigmoid"):
     # Fully Connected 3
     outputs = Dense(num_classes, activation=activation)(d2)
     
-    model = Model(inputs=[inputs], outputs=[outputs])
+    model = Model(inputs=[inputs], outputs=[outputs], name="LeNet")
     return model  
 
 
