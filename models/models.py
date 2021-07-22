@@ -1,6 +1,6 @@
 
-from keras import Model, Input, Sequential
-from keras.layers import Dense, MaxPooling2D, Flatten, Conv2D
+from tensorflow.keras import Model, Input, Sequential
+from tensorflow.keras.layers import Dense, MaxPooling2D, Flatten, Conv2D, GlobalAveragePooling2D
 from tensorflow.keras.utils import get_file
 from tensorflow.keras.applications import VGG16, VGG19, ResNet50, ResNet101, EfficientNetB0, InceptionV3
 
@@ -16,11 +16,10 @@ def vgg16(input_shape, num_classes, activation="softmax"):
     base_model.trainable = True
     
     #Build the model
-    model=Sequential(name="VGG16")
-    model.add(img_input)   #Adds the input layer
-    model.add(base_model)  #Adds the base model (in this case vgg19)
-    model.add(Flatten())   #Flatten base model output
-    model.add(Dense(num_classes, activation=activation)) #Adds a fully connected layer with output = num_classes
+    x = base_model(img_input, training=False)
+    x = GlobalAveragePooling2D()(x)
+    outputs = Dense(num_classes, activation=activation)(x) #Adds a fully connected layer with output = num_classes
+    model = Model(img_input, outputs, name="VGG16")
     return model
 
 def vgg19(input_shape, num_classes, activation="softmax"):

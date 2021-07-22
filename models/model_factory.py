@@ -2,7 +2,7 @@ from models.models import resnet101, resnet50, inception, vgg19, vgg16, efficien
 
 
 def make_model(network, input_shape, num_classes):
-    if network == 'leNet':
+    if network == 'LeNet':
         return leNet(input_shape, num_classes, activation="softmax")
     elif network == 'VGG19':
         return vgg19(input_shape, num_classes, activation="softmax")
